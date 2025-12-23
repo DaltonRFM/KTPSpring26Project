@@ -1,2 +1,32 @@
-# KTPSpring26Project
-The repository for my KTP Spring 2026 semester project.
+# RepQuest
+
+## About 
+Write this later
+
+## Developer
+- Dalton Ford [@DaltonRFM](https://github.com/DaltonRFM)
+
+## Technology Stack 
+- **Web Application**: HTML, CSS, Handlebars, Javascript
+- **Middleware**: Docker
+- **Database**: PostgreSQL
+- **Deployment**: Render
+
+## Prerequisites
+Please ensure that the following softwares have been installed prior to accessing the application:
+- PostgreSQL
+- Docker
+- Node.js
+
+## How to Run 
+To run locally, please follow these steps:
+1. Download the repository on your local machine. 
+2. Confirm that you have all the prerequisite softwares installed to your system.
+3. Navigate to the repository on your local machine, go into the ProjectSourceCode folder.
+4. In your terminal, run 'docker compose up -d'
+5. In your browser, navigate to [localhost:3000](localhost:3000) to access the application! Enjoy!
+
+
+## Deployed Application
+
+Add link in here later
