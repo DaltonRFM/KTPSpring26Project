@@ -15,12 +15,20 @@ const axios = require('axios'); // To make HTTP requests from our server.
 // // <!-- Connect to DB -->
 // // *****************************************************
 
-// // create `ExpressHandlebars` instance and configure the layouts and partials dir.
-// const hbs = handlebars.create({
-//   extname: 'hbs',
-//   layoutsDir: __dirname + '/views/layouts',
-//   partialsDir: __dirname + '/views/partials',
-// });
+// ---- Handlebars / views setup ----
+app.engine(
+  "hbs",
+  handlebars.engine({
+    extname: ".hbs",
+    defaultLayout: "main",
+    layoutsDir: path.join(__dirname, "views", "layouts"),
+    partialsDir: path.join(__dirname, "views", "partials") // optional, only if you create partials
+  })
+);
+
+app.set("view engine", "hbs");
+app.set("views", path.join(__dirname, "views"));
+
 
 // // database configuration
 // const dbConfig = {
@@ -78,12 +86,71 @@ app.get('/login', (req, res) => {
   res.render('pages/login'); // this one should work I think
 });
 
-
 app.get('/register', (req, res) => {
   res.render('pages/register');
 });
 
 //add more in the future for each page
+
+// DB connection (example)
+const db = pgp({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD
+});
+
+app.use(express.urlencoded({ extended: true }));
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false
+}));
+
+// POST /register
+app.post("/register", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    await db.none(
+      "INSERT INTO users(username, password_hash) VALUES($1, $2)",
+      [username, hash]
+    );
+    res.redirect("/login");
+  } catch (err) {
+
+    res.status(400).render("pages/register", { error: "Username already exists." });
+  }
+});
+
+// POST /login
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const user = await db.oneOrNone(
+      "SELECT username, password_hash FROM users WHERE username = $1",
+      [username]
+    );
+
+    if (!user) {
+      return res.status(401).render("pages/login", { error: "Invalid username or password." });
+    }
+
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) {
+      return res.status(401).render("pages/login", { error: "Invalid username or password." });
+    }
+
+    req.session.user = { username: user.username };
+    res.redirect("home"); // wherever you want after login
+  } catch (err) {
+    res.status(500).render("pages/login", { error: "Server error. Try again." });
+  }
+});
 
 
 
